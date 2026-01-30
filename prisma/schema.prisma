@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id                String        @id @default(uuid())
+  userId            String        @unique // Reference to Auth Service
+  nisn              String        @unique
+  nis               String?       @unique
+  name              String
+  nickname          String?
+  
+  // Class Information
+  classId           String
+  className         String        // Denormalized for performance
+  classLevel        String        // 10, 11, 12
+  classMajor        String?       // IPA, IPS, etc.
+  
+  // Personal Information
+  gender            Gender
+  birthPlace        String
+  birthDate         DateTime
+  religion          Religion
+  bloodType         BloodType?
+  address           String
+  rt                String?
+  rw                String?
+  village           String?
+  district          String?
+  city              String
+  province          String
+  postalCode        String?
+  phone             String?
+  email             String?
+  photoUrl          String?
+  
+  // Parent/Guardian Information
+  parentId          String?       // Reference to User (Orang Tua)
+  fatherName        String?
+  fatherOccupation  String?
+  fatherPhone       String?
+  motherName        String?
+  motherOccupation  String?
+  motherPhone       String?
+  guardianName      String?
+  guardianRelation  String?
+  guardianPhone     String?
+  
+  // Homeroom Teacher
+  waliKelasId       String?
+  waliKelasName     String?       // Denormalized
+  
+  // Points Information
+  totalPoints       Int           @default(0)
+  positivePoints    Int           @default(0)  // From achievements
+  negativePoints    Int           @default(0)  // From violations
+  currentRank       Int?
+  
+  // Academic Information
+  academicYear      String        // 2024/2025
+  entryYear         String        // 2024
+  entryDate         DateTime
+  
+  // Status
+  status            StudentStatus @default(ACTIVE)
+  statusReason      String?
+  graduationYear    String?
+  
+  // Documents
+  birthCertificateUrl   String?
+  familyCardUrl         String?
+  photoCardUrl          String?
+  
+  // Meta
+  isActive          Boolean       @default(true)
+  lastSyncedAt      DateTime?
+  createdBy         String
+  createdAt         DateTime      @default(now())
+  updatedBy         String?
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+  deletedBy         String?
+  
+  // Relations
+  class             Class         @relation(fields: [classId], references: [id])
+  pointsHistory     StudentPointsHistory[]
+  
+  @@index([nisn])
+  @@index([nis])
+  @@index([classId])
+  @@index([parentId])
+  @@index([waliKelasId])
+  @@index([academicYear])
+  @@map("students")
+}
+
+model Class {
+  id                String    @id @default(uuid())
+  code              String    @unique       // X-IPA-1
+  name              String                  // 10 IPA 1
+  level             String                  // 10, 11, 12
+  major             String?                 // IPA, IPS, BAHASA
+  
+  // Homeroom Teacher
+  waliKelasId       String?
+  waliKelasName     String?
+  
+  // Capacity
+  capacity          Int       @default(36)
+  currentTotal      Int       @default(0)
+  
+  // Academic
+  academicYear      String    // 2024/2025
+  
+  // Classroom Info
+  roomNumber        String?
+  floor             String?
+  building          String?
+  
+  // Schedule
+  scheduleUrl       String?   // Link to class schedule
+  
+  // Meta
+  isActive          Boolean   @default(true)
+  createdBy         String
+  createdAt         DateTime  @default(now())
+  updatedBy         String?
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  
+  // Relations
+  students          Student[]
+  
+  @@unique([code, academicYear])
+  @@index([level])
+  @@index([academicYear])
+  @@index([waliKelasId])
+  @@map("classes")
+}
+
+model StudentPointsHistory {
+  id                String    @id @default(uuid())
+  studentId         String
+  studentName       String
+  
+  // Points Change
+  previousTotal     Int
+  pointsChange      Int       // Positive or negative
+  newTotal          Int
+  
+  // Source
+  sourceType        PointSourceType
+  sourceId          String    // ID of violation or achievement
+  sourceDescription String
+  
+  // Period
+  academicYear      String
+  semester          Int       // 1 or 2
+  
+  // Meta
+  recordedBy        String
+  recordedAt        DateTime  @default(now())
+  
+  student           Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@index([studentId])
+  @@index([academicYear])
+  @@index([recordedAt])
+  @@map("student_points_history")
+}
+
+model AcademicYear {
+  id            String    @id @default(uuid())
+  year          String    @unique   // 2024/2025
+  startDate     DateTime
+  endDate       DateTime
+  semester1Start DateTime
+  semester1End   DateTime
+  semester2Start DateTime
+  semester2End   DateTime
+  isActive      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("academic_years")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Religion {
+  ISLAM
+  KRISTEN
+  KATOLIK
+  HINDU
+  BUDDHA
+  KONGHUCU
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  TRANSFERRED
+  DROPPED_OUT
+  SUSPENDED
+}
+
+enum PointSourceType {
+  VIOLATION
+  ACHIEVEMENT
+  ADJUSTMENT      // Manual adjustment by admin
+}
