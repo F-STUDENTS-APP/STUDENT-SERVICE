@@ -13,15 +13,24 @@ const app = express();
 const port = process.env.PORT || 3003;
 
 import swaggerUi from 'swagger-ui-express';
-import YAML from 'yamljs';
-import path from 'path';
+import { swaggerSpec } from './config/swagger';
 
-const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+const swaggerOptions = {
+  customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
+  customJs: [
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js',
+  ],
+};
 
-// Middleware
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(
   cors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
