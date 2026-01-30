@@ -12,7 +12,15 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3003;
 
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
+
+const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+
 // Middleware
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use(helmet());
 app.use(
   cors({

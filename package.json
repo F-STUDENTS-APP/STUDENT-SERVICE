@@ -40,9 +40,11 @@
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
     "multer": "^1.4.5-lts.1",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
-    "winston-daily-rotate-file": "^4.7.1"
+    "winston-daily-rotate-file": "^4.7.1",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -52,7 +54,9 @@
     "@types/jest": "^29.5.11",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.10.7",
+    "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^9.0.7",
+    "@types/yamljs": "^0.2.34",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
