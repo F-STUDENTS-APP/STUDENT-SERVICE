@@ -5,15 +5,15 @@ import cookieParser from 'cookie-parser';
 import 'express-async-errors';
 import dotenv from 'dotenv';
 import logger from './config/logger';
-import { sendError } from './utils/response';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
+import { errorHandler } from '@common/middlewares/error.handler';
+import { healthCheck } from '@common/utils/health';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3003;
-
-import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './config/swagger';
 
 const swaggerOptions = {
   customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
@@ -56,17 +56,10 @@ app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/classes', classRoutes);
 app.use('/api/v1/academic-years', academicYearRoutes);
 
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK', service: 'student-service' });
-});
+app.get('/health', healthCheck('student-service'));
 
 // Error handling
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack);
-  const status = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  sendError(res, status, message);
-});
+app.use(errorHandler);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
